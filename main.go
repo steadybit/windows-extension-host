@@ -5,6 +5,8 @@
 package main
 
 import (
+	_ "net/http/pprof" //allow pprof
+
 	_ "github.com/KimMachineGun/automemlimit" // By default, it sets `GOMEMLIMIT` to 90% of cgroup's memory limit.
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -23,7 +25,6 @@ import (
 	"github.com/steadybit/extension-kit/extruntime"
 	"github.com/steadybit/extension-kit/extsignals"
 	_ "go.uber.org/automaxprocs" // Importing automaxprocs automatically adjusts GOMAXPROCS.
-	_ "net/http/pprof"           //allow pprof
 )
 
 func main() {
@@ -56,28 +57,15 @@ func main() {
 	// This call registers a handler for the extension's root path. This is the path initially accessed
 	// by the Steadybit agent to obtain the extension's capabilities.
 	exthttp.RegisterHttpHandler("/", exthttp.GetterAsHandler(getExtensionList))
+	action_kit_sdk.RegisterAction(exthost.NewShutdownAction())
 
-	r := runc.NewRunc(runc.ConfigFromEnvironment())
+	// r := runc.NewRunc(runc.ConfigFromEnvironment())
 	log.Info().Interface("cfg", runc.ConfigFromEnvironment())
 
 	// This is a section you will most likely want to change: The registration of HTTP handlers
 	// for your extension. You might want to change these because the names do not fit, or because
 	// you do not have a need for all of them.
 	discovery_kit_sdk.Register(exthost.NewHostDiscovery())
-	action_kit_sdk.RegisterAction(exthost.NewStressCpuAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewStressMemoryAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewStressIoAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewTimetravelAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewStopProcessAction())
-	action_kit_sdk.RegisterAction(exthost.NewShutdownAction())
-	action_kit_sdk.RegisterAction(exthost.NewNetworkBlackholeContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewNetworkLimitBandwidthContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewNetworkCorruptPackagesContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewNetworkDelayContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewNetworkBlockDnsContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewNetworkPackageLossContainerAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewFillDiskHostAction(r))
-	action_kit_sdk.RegisterAction(exthost.NewFillMemoryHostAction(r))
 
 	//This will install a signal handler, that will stop active actions when receiving a SIGURS1, SIGTERM or SIGINT
 	extsignals.ActivateSignalHandlers()

@@ -1,9 +1,10 @@
 package stopprocess
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os/exec"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStopProcesses(t *testing.T) {

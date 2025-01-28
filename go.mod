@@ -13,14 +13,14 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
 	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.9.6
-	github.com/steadybit/action-kit/go/action_kit_commons v1.2.17
-	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.14
+	github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250124105504-a66d7a448c0d
+	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.15-0.20250124103207-e087cb4ad500
 	github.com/steadybit/action-kit/go/action_kit_test v1.3.2
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.6.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_commons v0.2.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.2.1
 	github.com/steadybit/discovery-kit/go/discovery_kit_test v1.1.2
-	github.com/steadybit/extension-kit v1.8.23
+	github.com/steadybit/extension-kit v1.8.24-0.20250127153347-2fb764c5ad59
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
@@ -66,6 +66,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/steadybit/action-kit v0.0.0-20250124101217-a8e4ed5836ee // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect

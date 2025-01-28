@@ -7,3 +7,4 @@
 /licenses
 /snyk.sarif
 extension-host
+*.exe

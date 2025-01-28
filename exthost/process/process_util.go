@@ -2,14 +2,12 @@ package stopprocess
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
+
 	"github.com/mitchellh/go-ps"
 	"github.com/rs/zerolog/log"
-	"github.com/steadybit/extension-host/exthost/common"
 	"github.com/steadybit/extension-kit/extutil"
-	"os/exec"
-	"runtime"
-	"strings"
-	"syscall"
 )
 
 func StopProcesses(pid []int, force bool) error {
@@ -26,11 +24,11 @@ func StopProcesses(pid []int, force bool) error {
 		}
 
 		var err error
-		if runtime.GOOS == "windows" {
-			err = stopProcessWindows(p, force)
-		} else {
-			err = stopProcessUnix(p, force)
-		}
+		// if runtime.GOOS == "windows" {
+		err = stopProcessWindows(p, force)
+		// } else {
+		// 	err = stopProcessUnix(p, force)
+		// }
 		if err != nil {
 			errors = append(errors, err.Error())
 		}
@@ -56,29 +54,29 @@ func stopProcessWindows(pid int, force bool) error {
 	return err
 }
 
-func stopProcessUnix(pid int, force bool) error {
-	if force {
-		err := syscall.Kill(pid, syscall.SIGKILL)
-		if err != nil {
-			log.Debug().Err(err).Int("pid", pid).Msg("Failed to send SIGKILL via syscall")
-			err = common.RunAsRoot("kill", "-9", fmt.Sprintf("%d", pid))
-		}
-		if err != nil {
-			return fmt.Errorf("failed to send SIGKILL process via exec: %w", err)
-		}
-		return err
-	}
+// func stopProcessUnix(pid int, force bool) error {
+// 	if force {
+// 		err := Kill(pid, syscall.SIGKILL)
+// 		if err != nil {
+// 			log.Debug().Err(err).Int("pid", pid).Msg("Failed to send SIGKILL via syscall")
+// 			err = common.RunAsRoot("kill", "-9", fmt.Sprintf("%d", pid))
+// 		}
+// 		if err != nil {
+// 			return fmt.Errorf("failed to send SIGKILL process via exec: %w", err)
+// 		}
+// 		return err
+// 	}
 
-	err := syscall.Kill(pid, syscall.SIGTERM)
-	if err != nil {
-		log.Error().Err(err).Int("pid", pid).Msg("failed to send SIGTERM via syscall")
-		err = common.RunAsRoot("kill", fmt.Sprintf("%d", pid))
-	}
-	if err != nil {
-		return fmt.Errorf("failed to send SIGTERM via exec: %w", err)
-	}
-	return err
-}
+// 	err := syscall.Kill(pid, syscall.SIGTERM)
+// 	if err != nil {
+// 		log.Error().Err(err).Int("pid", pid).Msg("failed to send SIGTERM via syscall")
+// 		err = common.RunAsRoot("kill", fmt.Sprintf("%d", pid))
+// 	}
+// 	if err != nil {
+// 		return fmt.Errorf("failed to send SIGTERM via exec: %w", err)
+// 	}
+// 	return err
+// }
 
 func FindProcessIds(processOrPid string) []int {
 	pid := extutil.ToInt(processOrPid)
