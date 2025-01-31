@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: 2024 Steadybit GmbH
-//go:build !windows
-// +build !windows
+//go:build windows
+// +build windows
 
 package exthost
 
@@ -67,7 +65,7 @@ func getNetworkBlockDnsDescription() action_kit_api.ActionDescription {
 }
 
 func blockDns() networkOptsProvider {
-	return func(ctx context.Context, sidecar network.SidecarOpts, request action_kit_api.PrepareActionRequestBody) (network.Opts, action_kit_api.Messages, error) {
+	return func(ctx context.Context, request action_kit_api.PrepareActionRequestBody) (network.WinOpts, action_kit_api.Messages, error) {
 		_, err := CheckTargetHostname(request.Target.Attributes)
 		if err != nil {
 			return nil, nil, err

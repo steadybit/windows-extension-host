@@ -1,8 +1,3 @@
-// SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: 2024 Steadybit GmbH
-//go:build !windows
-// +build !windows
-
 package exthost
 
 import (
@@ -23,9 +18,9 @@ import (
 	"github.com/steadybit/extension-kit/extutil"
 )
 
-type networkOptsProvider func(ctx context.Context, sidecar network.SidecarOpts, request action_kit_api.PrepareActionRequestBody) (network.Opts, action_kit_api.Messages, error)
+type networkOptsProvider func(ctx context.Context, request action_kit_api.PrepareActionRequestBody) (network.WinOpts, action_kit_api.Messages, error)
 
-type networkOptsDecoder func(data json.RawMessage) (network.Opts, error)
+type networkOptsDecoder func(data json.RawMessage) (network.WinOpts, error)
 
 type networkAction struct {
 	runc         runc.Runc
@@ -37,7 +32,6 @@ type networkAction struct {
 type NetworkActionState struct {
 	ExecutionId uuid.UUID
 	NetworkOpts json.RawMessage
-	Sidecar     network.SidecarOpts
 }
 
 // Make sure networkAction implements all required interfaces
@@ -97,18 +91,7 @@ func (a *networkAction) Prepare(ctx context.Context, state *NetworkActionState, 
 		return nil, err
 	}
 
-	initProcess, err := runc.ReadLinuxProcessInfo(ctx, 1)
-	if err != nil {
-		return nil, extension_kit.ToError("Failed to read root process infos.", err)
-	}
-
-	state.Sidecar = network.SidecarOpts{
-		TargetProcess: initProcess,
-		IdSuffix:      "host",
-		ExecutionId:   request.ExecutionId,
-	}
-
-	opts, messages, err := a.optsProvider(ctx, state.Sidecar, request)
+	opts, messages, err := a.optsProvider(ctx, request)
 	if err != nil {
 		return nil, extension_kit.WrapError(err)
 	}
@@ -136,7 +119,7 @@ func (a *networkAction) Start(ctx context.Context, state *NetworkActionState) (*
 		},
 	}}
 
-	err = network.Apply(ctx, a.runc, state.Sidecar, opts)
+	err = network.Apply(ctx, opts)
 	if err != nil {
 		var toomany *network.ErrTooManyTcCommands
 		if errors.As(err, &toomany) {
@@ -158,7 +141,7 @@ func (a *networkAction) Stop(ctx context.Context, state *NetworkActionState) (*a
 		return nil, extension_kit.ToError("Failed to deserialize network settings.", err)
 	}
 
-	if err := network.Revert(ctx, a.runc, state.Sidecar, opts); err != nil {
+	if err := network.Revert(ctx, opts); err != nil {
 		return nil, extension_kit.ToError("Failed to revert network settings.", err)
 	}
 
@@ -186,7 +169,7 @@ func parsePortRanges(raw []string) ([]network.PortRange, error) {
 	return ranges, nil
 }
 
-func mapToNetworkFilter(ctx context.Context, r runc.Runc, sidecar network.SidecarOpts, actionConfig map[string]interface{}, restrictedEndpoints []action_kit_api.RestrictedEndpoint) (network.Filter, action_kit_api.Messages, error) {
+func mapToNetworkFilter(ctx context.Context, actionConfig map[string]interface{}, restrictedEndpoints []action_kit_api.RestrictedEndpoint) (network.Filter, action_kit_api.Messages, error) {
 	includeCidrs, unresolved := network.ParseCIDRs(append(
 		extutil.ToStringArray(actionConfig["ip"]),
 		extutil.ToStringArray(actionConfig["hostname"])...,

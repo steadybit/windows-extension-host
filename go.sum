@@ -148,6 +148,8 @@ github.com/steadybit/action-kit/go/action_kit_commons v1.2.17 h1:NOKvnUA/iZo7mlc
 github.com/steadybit/action-kit/go/action_kit_commons v1.2.17/go.mod h1:GFLcaf/WluBIqnq+iSCEGkEqxnfB9h1I16IBR1T7kNQ=
 github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250124105504-a66d7a448c0d h1:4EMVpfkOE3yWZ/+E1rzJul0ymvL5CWPrtnupDXfsZOc=
 github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250124105504-a66d7a448c0d/go.mod h1:GFLcaf/WluBIqnq+iSCEGkEqxnfB9h1I16IBR1T7kNQ=
+github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250131123650-014dd4936b12 h1:SlNlpaxHGYr8TorpMCXVZNJmggrrkGgABS3hSUVPP/w=
+github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250131123650-014dd4936b12/go.mod h1:GFLcaf/WluBIqnq+iSCEGkEqxnfB9h1I16IBR1T7kNQ=
 github.com/steadybit/action-kit/go/action_kit_sdk v1.1.14 h1:x94RX+vh9Iyc0tS6BhiSpvknj+xE36AV0Nc3D5Yuub0=
 github.com/steadybit/action-kit/go/action_kit_sdk v1.1.14/go.mod h1:Tp/klK5b7k+BCvb3JTSDZSNcnpFBaHauhndzOarnMW4=
 github.com/steadybit/action-kit/go/action_kit_sdk v1.1.15-0.20250124103207-e087cb4ad500 h1:HsSYVkbusOH5Z5w+MrxA1+S50OhWomOYTjkPaATlZJI=
