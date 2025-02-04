@@ -1,13 +1,17 @@
+//go:build !windows
+// +build !windows
+
 package exthost
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/extension-kit/extutil"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestActionTimeTravel_Prepare(t *testing.T) {

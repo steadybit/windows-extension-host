@@ -54,12 +54,11 @@ func main() {
 	exthealth.SetReady(false)
 	exthealth.StartProbes(int(config.Config.HealthPort))
 
-	r := runc.NewRunc(runc.ConfigFromEnvironment())
 	// This call registers a handler for the extension's root path. This is the path initially accessed
 	// by the Steadybit agent to obtain the extension's capabilities.
 	exthttp.RegisterHttpHandler("/", exthttp.GetterAsHandler(getExtensionList))
 	action_kit_sdk.RegisterAction(exthost.NewShutdownAction())
-	action_kit_sdk.RegisterAction(exthost.NewNetworkBlockDnsContainerAction(r))
+	action_kit_sdk.RegisterAction(exthost.NewNetworkBlockDnsContainerAction())
 
 	log.Info().Interface("cfg", runc.ConfigFromEnvironment())
 

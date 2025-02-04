@@ -12,15 +12,13 @@ import (
 
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_commons/network"
-	"github.com/steadybit/action-kit/go/action_kit_commons/runc"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/extutil"
 )
 
-func NewNetworkBlackholeContainerAction(r runc.Runc) action_kit_sdk.Action[NetworkActionState] {
+func NewNetworkBlackholeContainerAction() action_kit_sdk.Action[NetworkActionState] {
 	return &networkAction{
-		runc:         r,
 		optsProvider: blackhole(),
 		optsDecoder:  blackholeDecode,
 		description:  getNetworkBlackholeDescription(),

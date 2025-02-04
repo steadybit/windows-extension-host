@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 /*
  * Copyright 2023 steadybit GmbH. All rights reserved.
  */
@@ -6,6 +9,9 @@ package exthost
 
 import (
 	"context"
+	"runtime"
+	"time"
+
 	"github.com/rs/zerolog/log"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_commons/runc"
@@ -13,8 +19,6 @@ import (
 	"github.com/steadybit/extension-host/exthost/timetravel"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/extutil"
-	"runtime"
-	"time"
 )
 
 type timeTravelAction struct {

@@ -8,10 +8,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_commons/network"
-	"github.com/steadybit/action-kit/go/action_kit_commons/runc"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	"github.com/steadybit/extension-host/config"
 	extension_kit "github.com/steadybit/extension-kit"
@@ -23,14 +21,12 @@ type networkOptsProvider func(ctx context.Context, request action_kit_api.Prepar
 type networkOptsDecoder func(data json.RawMessage) (network.WinOpts, error)
 
 type networkAction struct {
-	runc         runc.Runc
 	description  action_kit_api.ActionDescription
 	optsProvider networkOptsProvider
 	optsDecoder  networkOptsDecoder
 }
 
 type NetworkActionState struct {
-	ExecutionId uuid.UUID
 	NetworkOpts json.RawMessage
 }
 
@@ -175,7 +171,7 @@ func mapToNetworkFilter(ctx context.Context, actionConfig map[string]interface{}
 		extutil.ToStringArray(actionConfig["hostname"])...,
 	))
 
-	dig := network.HostnameResolver{Dig: &network.RuncDigRunner{Runc: r, Sidecar: sidecar}}
+	dig := network.HostnameResolver{}
 	resolved, err := dig.Resolve(ctx, unresolved...)
 	if err != nil {
 		return network.Filter{}, nil, err
