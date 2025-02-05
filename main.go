@@ -59,6 +59,8 @@ func main() {
 	exthttp.RegisterHttpHandler("/", exthttp.GetterAsHandler(getExtensionList))
 	action_kit_sdk.RegisterAction(exthost.NewShutdownAction())
 	action_kit_sdk.RegisterAction(exthost.NewNetworkBlockDnsContainerAction())
+	action_kit_sdk.RegisterAction(exthost.NewNetworkBlackholeContainerAction())
+	action_kit_sdk.RegisterAction(exthost.NewNetworkLimitBandwidthContainerAction())
 
 	log.Info().Interface("cfg", runc.ConfigFromEnvironment())
 
