@@ -82,7 +82,7 @@ jobs:
 
       - name: Curl Test
         run: |
-          curl -v http://localhost:8080
+          curl -v http://127.0.0.1:8080
 
       - name: Trigger Delete Windows EC2
         uses: the-actions-org/workflow-dispatch@v4
