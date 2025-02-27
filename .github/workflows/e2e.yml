@@ -50,7 +50,7 @@ jobs:
             git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
             curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
             gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
-            git clone git@github.com:steadybit/infrastructure-live.git
+            git clone https://$PAT_USERNAME:$PAT_TOKEN@github.com:steadybit/infrastructure-live.git
         with:
           tf_version: '1.5.7'
           tg_version: '0.48.0'
@@ -151,7 +151,7 @@ jobs:
             git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
             curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
             gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
-            git clone git@github.com:steadybit/infrastructure-live.git
+            git clone https://$PAT_USERNAME:$PAT_TOKEN@github.com:steadybit/infrastructure-live.git
         with:
           tf_version: '1.5.7'
           tg_version: '0.48.0'
