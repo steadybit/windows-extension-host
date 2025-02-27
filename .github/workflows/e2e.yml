@@ -12,53 +12,21 @@ jobs:
   windows-e2e:
     runs-on: ubuntu-latest
     env:
-      PAT_USERNAME: ${{ secrets.PAT_USERNAME }}
-      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       AWS_DEFAULT_REGION: eu-central-1
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        if: github.ref == 'refs/heads/main'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: "arn:aws:iam::244471902119:role/allow-auto-deploy-from-other-accounts"
-          role-duration-seconds: 1000
-          aws-region: eu-central-1
-
-      - name: Deploy Windows EC2
+      - name: Trigger Deploy Windows EC2
         id: deploy-windows-ec2
-        uses: gruntwork-io/terragrunt-action@v2
-        env:
-          INPUT_PRE_EXEC_1: |
-            PYTHON_VER=3.9
-            DEBIAN_FRONTEND=noninteractiv
-            sudo apt update && sudo apt upgrade -y
-            sudo apt install -y software-properties-common
-            sudo add-apt-repository ppa:deadsnakes/ppa -y
-            sudo apt update
-            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
-                echo "tzdata tzdata/Areas select Etc" | debconf-set-selections && \
-                echo "tzdata tzdata/Zones/Etc select UTC" | debconf-set-selections
-            sudo apt install -y python"$PYTHON_VER"
-            git config --global --replace-all url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "ssh://git@github.com"
-            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "git@github.com"
-            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
-            curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
-            gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
-            git clone https://$PAT_USERNAME:$PAT_TOKEN@github.com:steadybit/infrastructure-live.git
+        uses: the-actions-org/workflow-dispatch@v4
         with:
-          tf_version: '1.5.7'
-          tg_version: '0.48.0'
-          tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
-          tg_command: 'apply'
-          tg_add_approve: '1'
+          workflow: Windows-e2e-deploy
+          repo: steadybit/infrastructure-live
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Retrieve instance ID for windows-e2e
+        if: steps.deploy-windows-ec2.outcome == 'success'
         id: get-instance-id
         run: |
           sleep 15
@@ -74,6 +42,8 @@ jobs:
           echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
 
       - name: Wait for EC2 instance to be available in Fleet Manager
+        id: instance-ready
+        if: steps.get-instance-id.outcome == 'success'
         env:
           AWS_DEFAULT_REGION: eu-central-1
           INSTANCE_ID: ${{ steps.get-instance-id.outputs.instance_id }}
@@ -95,6 +65,7 @@ jobs:
           exit 1
 
       - name: SSM Port-forward and test
+        if: steps.instance-ready.outcome == 'success'
         env:
           INSTANCE_ID: ${{ steps.get-instance-id.outputs.instance_id }}
           AWS_DEFAULT_REGION: us-east-1
@@ -131,30 +102,9 @@ jobs:
           echo "Stopping port forwarding..."
           kill $PORTFORWARD_PID || echo "Failed to kill process with PID $PORTFORWARD_PID"
 
-      - name: Destroy Windows EC2
-        if: always() && steps.deploy-windows-ec2.outcome == 'success'
-        uses: gruntwork-io/terragrunt-action@v2
-        env:
-          INPUT_PRE_EXEC_1: |
-            PYTHON_VER=3.9
-            DEBIAN_FRONTEND=noninteractiv
-            sudo apt update && sudo apt upgrade -y
-            sudo apt install -y software-properties-common
-            sudo add-apt-repository ppa:deadsnakes/ppa -y
-            sudo apt update
-            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
-                echo "tzdata tzdata/Areas select Etc" | debconf-set-selections && \
-                echo "tzdata tzdata/Zones/Etc select UTC" | debconf-set-selections
-            sudo apt install -y python"$PYTHON_VER"
-            git config --global --replace-all url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "ssh://git@github.com"
-            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "git@github.com"
-            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
-            curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
-            gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
-            git clone https://$PAT_USERNAME:$PAT_TOKEN@github.com:steadybit/infrastructure-live.git
+      - name: Trigger Delete Windows EC2
+        uses: the-actions-org/workflow-dispatch@v4
         with:
-          tf_version: '1.5.7'
-          tg_version: '0.48.0'
-          tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
-          tg_command: 'destroy'
-          tg_add_approve: '1'
+          workflow: Windows-e2e-delete
+          repo: steadybit/infrastructure-live
+          token: ${{ secrets.PAT_TOKEN }}
