@@ -73,12 +73,9 @@ jobs:
           echo "ERROR: Instance $INSTANCE_ID did not become available within the expected time."
           exit 1
 
-      - name: Port forward
+      - name: Port forward && curl test
         run: |
-          aws ssm start-session --target ${{ steps.get-instance-id.outputs.instance_id }} --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}'
-
-      - name: Curl Test
-        run: |
+          nohup aws ssm start-session --target ${{ steps.get-instance-id.outputs.instance_id }} --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}' &
           curl -v http://127.0.0.1:8080
 
       - name: Trigger Delete Windows EC2
