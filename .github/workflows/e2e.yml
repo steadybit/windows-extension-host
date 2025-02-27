@@ -65,7 +65,6 @@ jobs:
 
       - name: Deploy Windows EC2
         id: deploy-windows-ec2
-        if: steps.driftdetectioneks.outcome == 'failure' && steps.driftdetectioneks.conclusion == 'success' && contains(steps.driftdetectioneks.outputs.tg_action_output, '0 to destroy.')
         uses: gruntwork-io/terragrunt-action@v2
         env:
           INPUT_PRE_EXEC_1: |
