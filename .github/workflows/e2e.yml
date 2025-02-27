@@ -76,6 +76,7 @@ jobs:
       - name: Port forward && curl test
         run: |
           nohup aws ssm start-session --target ${{ steps.get-instance-id.outputs.instance_id }} --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}' &
+          sleep 20
           curl -v http://localhost:8080
 
       - name: Trigger Delete Windows EC2
