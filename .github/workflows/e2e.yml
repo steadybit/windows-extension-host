@@ -104,7 +104,7 @@ jobs:
 
           # Test the port forwarding by curling localhost:8080
           echo "Testing port forwarding..."
-          curl_output=$(curl -s http://localhost:8080/)
+          curl_output=$(curl http://localhost:8080/)
           echo "Curl output: $curl_output"
 
           # Optionally, kill the port forwarding process after testing
