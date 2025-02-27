@@ -1,0 +1,194 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - 'windows-e2e'
+    inputs:
+      tf_version:
+        type: string
+        required: false
+        default: 1.5.7
+      tg_version:
+        type: string
+        required: false
+        default: 0.48.0
+      target_folder:
+        type: string
+        required: true
+      role_to_assume:
+        type: string
+        required: true
+      role_duration_seconds:
+        type: number
+        required: false
+        default: 1000
+      aws-region:
+        type: string
+        required: false
+        default: eu-central-1
+      fail-fast:
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      PAT_USERNAME:
+        required: true
+      PAT_TOKEN:
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  windows-e2e:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      PAT_USERNAME: ${{ secrets.PAT_USERNAME }}
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+      AWS_DEFAULT_REGION: eu-central-1
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "arn:aws:iam::244471902119:role/allow-auto-deploy-from-other-accounts"
+          role-duration-seconds: ${{ inputs.role_duration_seconds }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Deploy Windows EC2
+        id: deploy-windows-ec2
+        if: steps.driftdetectioneks.outcome == 'failure' && steps.driftdetectioneks.conclusion == 'success' && contains(steps.driftdetectioneks.outputs.tg_action_output, '0 to destroy.')
+        uses: gruntwork-io/terragrunt-action@v2
+        env:
+          INPUT_PRE_EXEC_1: |
+            PYTHON_VER=3.9
+            DEBIAN_FRONTEND=noninteractiv
+            sudo apt update && sudo apt upgrade -y
+            sudo apt install -y software-properties-common
+            sudo add-apt-repository ppa:deadsnakes/ppa -y
+            sudo apt update
+            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+                echo "tzdata tzdata/Areas select Etc" | debconf-set-selections && \
+                echo "tzdata tzdata/Zones/Etc select UTC" | debconf-set-selections
+            sudo apt install -y python"$PYTHON_VER"
+            git config --global --replace-all url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "ssh://git@github.com"
+            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "git@github.com"
+            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
+            curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
+            gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
+            git clone git@github.com:steadybit/infrastructure-live.git
+        with:
+          tf_version: ${{ inputs.tf_version }}
+          tg_version: ${{ inputs.tg_version }}
+          tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
+          tg_command: 'apply'
+          tg_add_approve: '1'
+
+      - name: Retrieve instance ID for windows-e2e
+        id: get-instance-id
+        run: |
+          sleep 15
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=windows-e2e" "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text --region eu-central-1)
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "No running instance with tag Name=windows-e2e was found."
+            exit 1
+          fi
+          echo "Found instance ID: $INSTANCE_ID"
+          echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for EC2 instance to be available in Fleet Manager
+        env:
+          AWS_DEFAULT_REGION: eu-central-1
+          INSTANCE_ID: ${{ steps.get-instance-id.outputs.instance_id }}
+        run: |
+          MAX_ATTEMPTS=30
+          COUNT=0
+          echo "Waiting for instance $INSTANCE_ID to appear in Fleet Manager (SSM)..."
+          while [ $COUNT -lt $MAX_ATTEMPTS ]; do
+            RESULT=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=$INSTANCE_ID" --query "InstanceInformationList[*].InstanceId" --output text)
+            if [ "$RESULT" = "$INSTANCE_ID" ]; then
+              echo "Instance $INSTANCE_ID is available in Fleet Manager."
+              exit 0
+            fi
+            echo "Instance not available yet. Sleeping 10 seconds..."
+            sleep 10
+            COUNT=$((COUNT + 1))
+          done
+          echo "ERROR: Instance $INSTANCE_ID did not become available within the expected time."
+          exit 1
+
+      - name: SSM Port-forward and test
+        env:
+          INSTANCE_ID: ${{ steps.get-instance-id.outputs.instance_id }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          # Install the Session Manager Plugin if not already installed
+          if ! command -v session-manager-plugin > /dev/null; then
+            echo "Installing Session Manager Plugin..."
+            curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o session-manager-plugin.deb
+            sudo dpkg -i session-manager-plugin.deb
+            rm session-manager-plugin.deb
+          else
+            echo "Session Manager Plugin is already installed."
+          fi
+
+          # Start SSM port forwarding in the background.
+          # This will forward port 8080 on the instance to local port 8080.
+          echo "Starting SSM port forwarding..."
+          nohup aws ssm start-session \
+            --target "$INSTANCE_ID" \
+            --document-name "AWS-StartPortForwardingSession" \
+            --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}' > port-forward.log 2>&1 &
+          PORTFORWARD_PID=$!
+          echo "SSM port forwarding started with PID $PORTFORWARD_PID"
+
+          # Wait a few seconds to allow the port forwarding to establish
+          sleep 10
+
+          # Test the port forwarding by curling localhost:8080
+          echo "Testing port forwarding..."
+          curl_output=$(curl -s http://localhost:8080/)
+          echo "Curl output: $curl_output"
+
+          # Optionally, kill the port forwarding process after testing
+          echo "Stopping port forwarding..."
+          kill $PORTFORWARD_PID || echo "Failed to kill process with PID $PORTFORWARD_PID"
+
+      - name: Destroy Windows EC2
+        if: always() && steps.deploy-windows-ec2.outcome == 'success'
+        uses: gruntwork-io/terragrunt-action@v2
+        env:
+          INPUT_PRE_EXEC_1: |
+            PYTHON_VER=3.9
+            DEBIAN_FRONTEND=noninteractiv
+            sudo apt update && sudo apt upgrade -y
+            sudo apt install -y software-properties-common
+            sudo add-apt-repository ppa:deadsnakes/ppa -y
+            sudo apt update
+            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+                echo "tzdata tzdata/Areas select Etc" | debconf-set-selections && \
+                echo "tzdata tzdata/Zones/Etc select UTC" | debconf-set-selections
+            sudo apt install -y python"$PYTHON_VER"
+            git config --global --replace-all url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "ssh://git@github.com"
+            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "git@github.com"
+            git config --global --add url."https://$PAT_USERNAME:$PAT_TOKEN@github.com".insteadOf "https://github.com"
+            curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/v0.0.40/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.40
+            gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
+            git clone git@github.com:steadybit/infrastructure-live.git
+        with:
+          tf_version: ${{ inputs.tf_version }}
+          tg_version: ${{ inputs.tg_version }}
+          tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
+          tg_command: 'destroy'
+          tg_add_approve: '1'
