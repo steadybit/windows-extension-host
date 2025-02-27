@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'windows-e2e'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
