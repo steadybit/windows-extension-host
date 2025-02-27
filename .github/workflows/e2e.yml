@@ -4,38 +4,6 @@ on:
   push:
     branches:
       - 'windows-e2e'
-    inputs:
-      tf_version:
-        type: string
-        required: false
-        default: 1.5.7
-      tg_version:
-        type: string
-        required: false
-        default: 0.48.0
-      target_folder:
-        type: string
-        required: true
-      role_to_assume:
-        type: string
-        required: true
-      role_duration_seconds:
-        type: number
-        required: false
-        default: 1000
-      aws-region:
-        type: string
-        required: false
-        default: eu-central-1
-      fail-fast:
-        type: boolean
-        required: false
-        default: false
-    secrets:
-      PAT_USERNAME:
-        required: true
-      PAT_TOKEN:
-        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -43,7 +11,6 @@ concurrency:
 jobs:
   windows-e2e:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
     env:
       PAT_USERNAME: ${{ secrets.PAT_USERNAME }}
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -60,8 +27,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: "arn:aws:iam::244471902119:role/allow-auto-deploy-from-other-accounts"
-          role-duration-seconds: ${{ inputs.role_duration_seconds }}
-          aws-region: ${{ inputs.aws-region }}
+          role-duration-seconds: 1000
+          aws-region: eu-central-1
 
       - name: Deploy Windows EC2
         id: deploy-windows-ec2
@@ -85,8 +52,8 @@ jobs:
             gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
             git clone git@github.com:steadybit/infrastructure-live.git
         with:
-          tf_version: ${{ inputs.tf_version }}
-          tg_version: ${{ inputs.tg_version }}
+          tf_version: '1.5.7'
+          tg_version: '0.48.0'
           tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
           tg_command: 'apply'
           tg_add_approve: '1'
@@ -186,8 +153,8 @@ jobs:
             gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "v0.15.0"
             git clone git@github.com:steadybit/infrastructure-live.git
         with:
-          tf_version: ${{ inputs.tf_version }}
-          tg_version: ${{ inputs.tg_version }}
+          tf_version: '1.5.7'
+          tg_version: '0.48.0'
           tg_dir: "infrastructure-live/dev/eu-central-1/demo/services/windows-ec2-e2e"
           tg_command: 'destroy'
           tg_add_approve: '1'
