@@ -73,12 +73,13 @@ jobs:
           echo "ERROR: Instance $INSTANCE_ID did not become available within the expected time."
           exit 1
 
-      - name: SSM Port Forward
-        uses: skroutz-internal/aws-ssm-port-forwarding-session-action@v1.0.0
+      - name: Port forward
+        uses: enkhjile/aws-ssm-remote-port-forwarding-action@v1
         with:
-          target-id: ${{ steps.get-instance-id.outputs.instance_id }}
-          portNumber: 8080
-          localPortNumber:  8080
+          target: ${{ steps.get-instance-id.outputs.instance_id }}
+          host: localhost
+          port: 8080
+          local-port: 8080
 
       - name: Curl Test
         run: |
