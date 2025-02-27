@@ -74,16 +74,15 @@ jobs:
           exit 1
 
       - name: Port forward
-        uses: enkhjile/aws-ssm-remote-port-forwarding-action@v1
+        uses: gian2dchris/aws-ssm-port-forwarding-session-action@v1.0.0
         with:
-          target: ${{ steps.get-instance-id.outputs.instance_id }}
-          host: localhost
-          port: 8080
-          local-port: 8080
+          target-id: ${{ steps.get-instance-id.outputs.instance_id }}
+          portNumber: 8008
+          localPortNumber: 8080
 
       - name: Curl Test
         run: |
-          curl -v http://127.0.0.1:8080
+          curl -v http://localhost:8080
 
       - name: Trigger Delete Windows EC2
         uses: the-actions-org/workflow-dispatch@v4
