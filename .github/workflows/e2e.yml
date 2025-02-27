@@ -74,11 +74,8 @@ jobs:
           exit 1
 
       - name: Port forward
-        uses: gian2dchris/aws-ssm-port-forwarding-session-action@v1.0.0
-        with:
-          target-id: ${{ steps.get-instance-id.outputs.instance_id }}
-          portNumber: 8080
-          localPortNumber: 8080
+        run: |
+          aws ssm start-session --target ${{ steps.get-instance-id.outputs.instance_id }} --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}'
 
       - name: Curl Test
         run: |
