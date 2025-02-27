@@ -73,43 +73,16 @@ jobs:
           echo "ERROR: Instance $INSTANCE_ID did not become available within the expected time."
           exit 1
 
-      - name: SSM Port-forward and test
-        if: steps.instance-ready.outcome == 'success'
-        env:
-          INSTANCE_ID: ${{ steps.get-instance-id.outputs.instance_id }}
-          AWS_DEFAULT_REGION: us-east-1
+      - name: SSM Port Forward
+        uses: skroutz-internal/aws-ssm-port-forwarding-session-action@v1.0.0
+        with:
+          target-id: ${{ steps.get-instance-id.outputs.instance_id }}
+          portNumber: 8080
+          localPortNumber:  8080
+
+      - name: Curl Test
         run: |
-          # Install the Session Manager Plugin if not already installed
-          if ! command -v session-manager-plugin > /dev/null; then
-            echo "Installing Session Manager Plugin..."
-            curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o session-manager-plugin.deb
-            sudo dpkg -i session-manager-plugin.deb
-            rm session-manager-plugin.deb
-          else
-            echo "Session Manager Plugin is already installed."
-          fi
-
-          # Start SSM port forwarding in the background.
-          # This will forward port 8080 on the instance to local port 8080.
-          echo "Starting SSM port forwarding..."
-          nohup aws ssm start-session \
-            --target "$INSTANCE_ID" \
-            --document-name "AWS-StartPortForwardingSession" \
-            --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}' > port-forward.log 2>&1 &
-          PORTFORWARD_PID=$!
-          echo "SSM port forwarding started with PID $PORTFORWARD_PID"
-
-          # Wait a few seconds to allow the port forwarding to establish
-          sleep 10
-
-          # Test the port forwarding by curling localhost:8080
-          echo "Testing port forwarding..."
-          curl_output=$(curl http://127.0.0.1:8080/)
-          echo "Curl output: $curl_output"
-
-          # Optionally, kill the port forwarding process after testing
-          echo "Stopping port forwarding..."
-          kill $PORTFORWARD_PID || echo "Failed to kill process with PID $PORTFORWARD_PID"
+          curl -v http://127.0.0.1:8080
 
       - name: Trigger Delete Windows EC2
         uses: the-actions-org/workflow-dispatch@v4
