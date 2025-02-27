@@ -73,13 +73,6 @@ jobs:
           echo "ERROR: Instance $INSTANCE_ID did not become available within the expected time."
           exit 1
 
-      - name: SSM Port Forward
-        uses: skroutz-internal/aws-ssm-port-forwarding-session-action@v1.0.0
-        with:
-          target-id: ${{ steps.get-instance-id.outputs.instance_id }}
-          portNumber: 8080
-          localPortNumber: 8080
-
       - name: SSM Port-forward and test
         if: steps.instance-ready.outcome == 'success'
         env:
