@@ -23,9 +23,8 @@ func StopProcesses(pid []int, force bool) error {
 			continue
 		}
 
-		var err error
 		// if runtime.GOOS == "windows" {
-		err = stopProcessWindows(p, force)
+		err := stopProcessWindows(p, force)
 		// } else {
 		// 	err = stopProcessUnix(p, force)
 		// }

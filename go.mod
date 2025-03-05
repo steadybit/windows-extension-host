@@ -2,8 +2,6 @@ module github.com/steadybit/extension-host
 
 go 1.23.0
 
-toolchain go1.23.4
-
 require (
 	github.com/KimMachineGun/automemlimit v0.7.1
 	github.com/elastic/go-sysinfo v1.15.1
@@ -12,10 +10,10 @@ require (
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
-	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.9.6
-	github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250305142710-17aaf89712cc
-	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.15-0.20250124103207-e087cb4ad500
-	github.com/steadybit/action-kit/go/action_kit_test v1.3.2
+	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.9.7-0.20250304163407-b88a006d36f3
+	github.com/steadybit/action-kit/go/action_kit_commons v1.2.18-0.20250304163407-b88a006d36f3
+	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.15-0.20250304163407-b88a006d36f3
+	github.com/steadybit/action-kit/go/action_kit_test v1.3.3-0.20250304163407-b88a006d36f3
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.6.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_commons v0.2.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.2.3
@@ -82,9 +80,9 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.1 // indirect
-	k8s.io/api v0.32.0 // indirect
-	k8s.io/apimachinery v0.32.0 // indirect
-	k8s.io/client-go v0.32.0 // indirect
+	k8s.io/api v0.32.1 // indirect
+	k8s.io/apimachinery v0.32.1 // indirect
+	k8s.io/client-go v0.32.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241212222426-2c72e554b1e7 // indirect
 	k8s.io/utils v0.0.0-20241210054802-24370beab758 // indirect
