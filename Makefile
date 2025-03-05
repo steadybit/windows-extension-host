@@ -52,6 +52,11 @@ audit:
 build:
 	goreleaser build --clean --snapshot --single-target -o extension.exe
 
+## release: package a release
+.PHONY: release
+release: licenses-report
+	goreleaser release --clean --snapshot
+
 ## run: run the extension
 .PHONY: run
 run: tidy build
