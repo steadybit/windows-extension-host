@@ -1,3 +1,6 @@
+//go:build windows
+// +build windows
+
 /*
  * Copyright 2023 steadybit GmbH. All rights reserved.
  */
@@ -61,6 +64,9 @@ func main() {
 	action_kit_sdk.RegisterAction(exthost.NewNetworkBlockDnsContainerAction())
 	action_kit_sdk.RegisterAction(exthost.NewNetworkBlackholeContainerAction())
 	action_kit_sdk.RegisterAction(exthost.NewNetworkLimitBandwidthContainerAction())
+	action_kit_sdk.RegisterAction(exthost.NewNetworkDelayContainerAction())
+	action_kit_sdk.RegisterAction(exthost.NewNetworkCorruptPackagesContainerAction())
+	action_kit_sdk.RegisterAction(exthost.NewNetworkPackageLossContainerAction())
 
 	log.Info().Interface("cfg", runc.ConfigFromEnvironment())
 
