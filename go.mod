@@ -6,6 +6,7 @@ require (
 	github.com/KimMachineGun/automemlimit v0.7.1
 	github.com/elastic/go-sysinfo v1.15.1
 	github.com/google/uuid v1.6.0
+	github.com/kardianos/service v1.2.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/pkg/errors v0.9.1
