@@ -8,9 +8,6 @@
 package main
 
 import (
-	_ "net/http/pprof" //allow pprof
-
-	_ "github.com/KimMachineGun/automemlimit" // By default, it sets `GOMEMLIMIT` to 90% of cgroup's memory limit.
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
@@ -28,6 +25,7 @@ import (
 	"github.com/steadybit/extension-kit/extruntime"
 	"github.com/steadybit/extension-kit/extsignals"
 	_ "go.uber.org/automaxprocs" // Importing automaxprocs automatically adjusts GOMAXPROCS.
+	"golang.org/x/sys/windows/svc"
 )
 
 func main() {
@@ -77,6 +75,24 @@ func main() {
 
 	//This will install a signal handler, that will stop active actions when receiving a SIGURS1, SIGTERM or SIGINT
 	extsignals.ActivateSignalHandlers()
+
+	//Register Windows service and stop handler
+	inService, err := svc.IsWindowsService()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to determine if we are running in service")
+	}
+	if inService {
+		go func() {
+			err := exthost.NewExtensionService(func() {
+				exthttp.StopListen()
+			})
+			if err != nil {
+				log.Fatal().Err(err).Msg("Error starting Windows service")
+			} else {
+				log.Info().Msg("Windows service stopped")
+			}
+		}()
+	}
 
 	action_kit_sdk.RegisterCoverageEndpoints()
 
