@@ -1,9 +1,6 @@
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2025 Steadybit GmbH
 //go:build windows
-// +build windows
-
-/*
- * Copyright 2023 steadybit GmbH. All rights reserved.
- */
 
 package main
 
@@ -17,7 +14,6 @@ import (
 	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/extension-host/config"
 	"github.com/steadybit/extension-host/exthost"
-	"github.com/steadybit/extension-host/exthost/resources"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/exthealth"
 	"github.com/steadybit/extension-kit/exthttp"
@@ -37,8 +33,6 @@ func main() {
 	//  - to activate JSON logging, set the environment variable STEADYBIT_LOG_FORMAT="json"
 	//  - to set the log level to debug, set the environment variable STEADYBIT_LOG_LEVEL="debug"
 	extlogging.InitZeroLog()
-
-	resources.AdjustOOMScoreAdj()
 
 	// Build information is set at compile-time. This line writes the build information to the log.
 	// The information is mostly handy for debugging purposes.
