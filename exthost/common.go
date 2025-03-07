@@ -34,10 +34,6 @@ var (
 			Label:       "host name",
 			Description: extutil.Ptr("Find host by host name."),
 			Query:       "host.hostname=\"\"",
-		}, {
-			Label:       "host os",
-			Description: extutil.Ptr("Find host by host os."),
-			Query:       "host.os=\"windows\"",
 		},
 	}
 	osHostname = os.Hostname
